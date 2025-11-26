@@ -60,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
                 label: "ask_ares".tr(),
                 icon: Icons.auto_awesome,
                 onPressed: () {
-                  // Sprint 4 → ChatScreen
+                 context.go('/chat');
                 },
               ),
 
