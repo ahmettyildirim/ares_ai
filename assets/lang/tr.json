@@ -1,5 +1,18 @@
 {
-  "hello": "Merhaba",
-  "continue": "Devam",
-  "welcome": "Ares AI'ya hoş geldin"
+  "welcome_back": "Tekrar Hoşgeldin",
+  "login": "Giriş Yap",
+  "email": "E-posta",
+  "password": "Şifre",
+  "hello_user": "Merhaba {} 👋",
+  "what_today": "Bugün ne yapmak istersin?",
+  "ask_ares": "Ares AI'a Sor",
+  "my_tasks": "Görevlerim",
+  "my_notes": "Notlarım",
+  "loading": "Yükleniyor...",
+  "logout": "Çıkış Yap",
+  "login_subtitle": "Devam etmek için giriş yap",
+  "email_hint": "ornek@mail.com",
+  "email_required": "Lütfen e-posta adresini gir.",
+  "password_hint": "******",
+  "password_required": "Lütfen şifreni gir."
 }
