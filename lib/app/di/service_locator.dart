@@ -1,3 +1,4 @@
+import 'package:ares_ai/services/ai/openai_ai_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// API istekleri için temel client arayüzü.
@@ -78,6 +79,17 @@ class FakeAiService implements AiService {
   }
 }
 
+/// Buradan gerçek / fake AI seçimini tek yerden kontrol edeceğiz.
+const bool useFakeAi = false; // <- GELİŞTİRMEDE true/false ile oynayabilirsin
+
+final aiServiceProvider = Provider<AiService>((ref) {
+  if (useFakeAi) {
+    return FakeAiService();
+  } else {
+    return OpenAiService();
+  }
+});
+
 /// Buradan itibaren Riverpod provider'larımız:
 ///
 /// Uygulamanın her yerinde:
@@ -92,6 +104,3 @@ final storageServiceProvider = Provider<StorageService>((ref) {
   return InMemoryStorageService();
 });
 
-final aiServiceProvider = Provider<AiService>((ref) {
-  return FakeAiService();
-});
