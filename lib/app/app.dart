@@ -1,4 +1,5 @@
 import 'package:ares_ai/app/core/router/app_router.dart';
+import 'package:ares_ai/app/di/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -50,22 +51,37 @@ class AresApp extends ConsumerWidget {
 /// Şimdilik placeholder bir ekran.
 /// Sonraki sprintlerde burayı router'a bağlayıp
 /// onboarding / auth / home akışlarını koyacağız.
-class RootScreen extends ConsumerWidget {
+class RootScreen extends ConsumerStatefulWidget {
   const RootScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ares AI'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'Ares AI is up & running 🚀\n\nSprint 1: Architecture skeleton hazır.',
-          textAlign: TextAlign.center,
-        ),
-      ),
+  ConsumerState<RootScreen> createState() => _RootScreenState();
+}
+
+class _RootScreenState extends ConsumerState<RootScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final storage = ref.read(storageServiceProvider);
+
+    final seen = await storage.getBool('onboarding_seen');
+
+    if (!seen && mounted) {
+      Future.microtask(() {
+        context.go('/onboarding');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: Text("Ares AI is loading...")),
     );
   }
 }
+

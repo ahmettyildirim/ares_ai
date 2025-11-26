@@ -28,12 +28,14 @@ abstract class StorageService {
   Future<void> write(String key, String value);
   Future<String?> read(String key);
   Future<void> delete(String key);
+  Future<bool> getBool(String key);
+  Future<void> setBool(String key, bool value);
 }
 
 /// Basit dummy implementation.
 /// İleride Hive + FlutterSecureStorage ile gerçeklenecek.
 class InMemoryStorageService implements StorageService {
-  final Map<String, String> _memory = {};
+  final Map<String, dynamic> _memory = {};
 
   @override
   Future<void> write(String key, String value) async {
@@ -48,6 +50,15 @@ class InMemoryStorageService implements StorageService {
   @override
   Future<void> delete(String key) async {
     _memory.remove(key);
+  }
+  @override
+  Future<bool> getBool(String key) async {
+    return _memory[key] ?? false;
+  }
+
+  @override
+  Future<void> setBool(String key, bool value) async {
+    _memory[key] = value;
   }
 }
 
