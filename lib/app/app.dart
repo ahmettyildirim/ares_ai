@@ -1,11 +1,15 @@
+import 'package:ares_ai/app/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 /// Uygulama genelinde ThemeMode'u yönetecek provider.
 /// İleride Settings feature'ından buraya dokunacağız.
+
 final themeModeProvider = StateProvider<ThemeMode>((ref) {
   return ThemeMode.system;
 });
+
 
 class AresApp extends ConsumerWidget {
   const AresApp({super.key});
@@ -13,8 +17,12 @@ class AresApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final router = ref.watch(routerProvider);
 
-    return MaterialApp(
+    return MaterialApp.router(
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
       title: 'Ares AI',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
@@ -34,7 +42,7 @@ class AresApp extends ConsumerWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const _RootScreen(),
+      routerConfig: router,
     );
   }
 }
@@ -42,8 +50,8 @@ class AresApp extends ConsumerWidget {
 /// Şimdilik placeholder bir ekran.
 /// Sonraki sprintlerde burayı router'a bağlayıp
 /// onboarding / auth / home akışlarını koyacağız.
-class _RootScreen extends ConsumerWidget {
-  const _RootScreen({super.key});
+class RootScreen extends ConsumerWidget {
+  const RootScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
