@@ -18,5 +18,10 @@
     "ai_empty_response": "AI yanıtı çözümlenemedi.",
     "ai_no_choices": "AI yanıtı alınamadı.",
     "ai_request_failed": "AI isteği başarısız oldu. Status kodu: {}",
-    "ai_error_occurred": "AI isteği sırasında bir hata oluştu: {}"
+    "ai_error_occurred": "AI isteği sırasında bir hata oluştu: {}",
+    "chat_copy": "Kopyala",
+    "chat_save_to_memory": "Hafızaya kaydet",
+    "chat_remove_from_memory": "Hafızadan sil",
+    "chat_ares_typing": "Ares yazıyor"
+
 }

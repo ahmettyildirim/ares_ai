@@ -4,6 +4,7 @@ class ChatMessage {
   final bool isUser;
   final DateTime createdAt;
   final bool isStreaming;
+  final bool isSavedToMemory; // NEW 🔥
 
   ChatMessage({
     required this.id,
@@ -11,6 +12,7 @@ class ChatMessage {
     required this.isUser,
     required this.createdAt,
     this.isStreaming = false,
+    this.isSavedToMemory = false,
   });
 
   ChatMessage copyWith({
@@ -19,6 +21,7 @@ class ChatMessage {
     bool? isUser,
     DateTime? createdAt,
     bool? isStreaming,
+    bool? isSavedToMemory,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -26,6 +29,7 @@ class ChatMessage {
       isUser: isUser ?? this.isUser,
       createdAt: createdAt ?? this.createdAt,
       isStreaming: isStreaming ?? this.isStreaming,
+      isSavedToMemory: isSavedToMemory ?? this.isSavedToMemory,
     );
   }
 }

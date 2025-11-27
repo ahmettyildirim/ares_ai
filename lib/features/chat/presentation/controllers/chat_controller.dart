@@ -21,6 +21,17 @@ class ChatController extends StateNotifier<ChatState> {
     required this.memoryRepo,
   }) : super(ChatState(messages: []));
 
+  void toggleMessageMemory(String messageId, bool saved) {
+    final updated = state.messages.map((m) {
+      if (m.id == messageId) {
+        return m.copyWith(isSavedToMemory: saved);
+      }
+      return m;
+    }).toList();
+
+    state = state.copyWith(messages: updated);
+  }
+
   Future<void> sendUserMessage(String text) async {
     // 1) Kullanıcı mesajını ekle
     final userMsg = ChatMessage(
@@ -51,6 +62,16 @@ class ChatController extends StateNotifier<ChatState> {
         importance: 0.7,
       );
       await memoryRepo.addMemory(newMemory);
+
+      // 🔖 Bu mesajdan memory üretildi → ilgili ChatMessage'ı işaretle
+      final updatedMessages = state.messages.map((m) {
+        if (m.id == userMsg.id) {
+          return m.copyWith(isSavedToMemory: true);
+        }
+        return m;
+      }).toList();
+
+      state = state.copyWith(messages: updatedMessages);
     }
 
     // 4) Streaming AI yanıtı

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class TypingIndicator extends StatefulWidget {
@@ -9,36 +10,49 @@ class TypingIndicator extends StatefulWidget {
 
 class _TypingIndicatorState extends State<TypingIndicator>
     with SingleTickerProviderStateMixin {
+
   late AnimationController _controller;
+  late Animation<double> _dotAnimation;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
+    )..repeat();
+
+    _dotAnimation = Tween<double>(begin: 0.0, end: 3.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    // 🔥 ÇOK ÖNEMLİ: animasyon mutlaka durmalı
+    _controller.stop();
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _controller,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade800,
-            borderRadius: BorderRadius.circular(12),
+    return AnimatedBuilder(
+      animation: _dotAnimation,
+      builder: (context, child) {
+        int dots = _dotAnimation.value.floor() % 3 + 1;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Text(
+            '${"chat_ares_typing".tr()}${'.' * dots}',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontStyle: FontStyle.italic,
+            ),
           ),
-          child: const Text(
-            "...",
-            style: TextStyle(color: Colors.white70, fontSize: 20),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

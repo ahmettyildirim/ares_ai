@@ -18,5 +18,10 @@
     "ai_empty_response": "AI response could not be parsed.",
     "ai_no_choices": "No AI response received.",
     "ai_request_failed": "AI request failed. Status code: {}",
-    "ai_error_occurred": "An error occurred during AI request: {}"
+    "ai_error_occurred": "An error occurred during AI request: {}",
+    "chat_copy": "Copy",
+    "chat_save_to_memory": "Save to memory",
+    "chat_remove_from_memory": "Remove from memory",
+    "chat_ares_typing": "Ares is typing"
+
 }

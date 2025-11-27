@@ -44,15 +44,14 @@ class LocalMemoryRepository implements MemoryRepository {
     final lowered = query.toLowerCase();
 
     // çok basit bir relevance: content içinde geçenler + tarih/importance
-    final filtered = all
-        .where((m) => m.content.toLowerCase().contains(lowered))
-        .toList()
-      ..sort((a, b) {
-        final byImportance = b.importance.compareTo(a.importance);
-        if (byImportance != 0) return byImportance;
-        return (b.lastUsedAt ?? b.createdAt)
-            .compareTo(a.lastUsedAt ?? a.createdAt);
-      });
+    final filtered =
+        all.where((m) => m.content.toLowerCase().contains(lowered)).toList()
+          ..sort((a, b) {
+            final byImportance = b.importance.compareTo(a.importance);
+            if (byImportance != 0) return byImportance;
+            return (b.lastUsedAt ?? b.createdAt)
+                .compareTo(a.lastUsedAt ?? a.createdAt);
+          });
 
     return filtered.take(limit).toList();
   }
@@ -74,5 +73,12 @@ class LocalMemoryRepository implements MemoryRepository {
         .toList();
 
     await storage.write(_memoryStorageKey, jsonEncode(jsonList));
+  }
+
+  @override
+  Future<void> removeMemoryByContent(String content) async {
+    final all = await getAllMemories();
+    final updated = all.where((m) => m.content != content).toList();
+    await _saveList(updated);
   }
 }
