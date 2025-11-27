@@ -25,5 +25,11 @@
     "chat_ares_typing": "Ares is typing",
     "memory_title": "Ares Memory",
     "memory_empty": "Ares has not saved anything yet.",
-    "memory_deleted": "Memory deleted"
+    "memory_deleted": "Memory deleted",
+    "sidebar_new_chat": "New Chat",
+    "sidebar_memory_viewer": "Memory Viewer",
+    "sidebar_settings": "Settings",
+    "chat_title": "Ares AI",
+    "chat_input_placeholder": "Message",
+    "chat_send": "Send"
 }

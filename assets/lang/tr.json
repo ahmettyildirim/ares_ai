@@ -25,5 +25,11 @@
     "chat_ares_typing": "Ares yazıyor",
     "memory_title": "Ares Hafızası",
     "memory_empty": "Ares henüz bir şey öğrenmedi.",
-    "memory_deleted": "Hafıza kaydı silindi"
+    "memory_deleted": "Hafıza kaydı silindi",
+    "sidebar_new_chat": "Yeni Sohbet",
+    "sidebar_memory_viewer": "Hafıza Görüntüleyici",
+    "sidebar_settings": "Ayarlar",
+    "chat_title": "Ares AI",
+    "chat_input_placeholder": "Mesaj",
+    "chat_send": "Gönder"
 }

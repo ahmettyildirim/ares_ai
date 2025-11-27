@@ -20,7 +20,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Ares AI"),
+        title:  Text("chat_title".tr()),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         actions: [

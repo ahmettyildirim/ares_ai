@@ -2,8 +2,7 @@ import 'package:ares_ai/features/chat/data/repositories/chat_session_repository.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/chat_session.dart';
 
-class ActiveChatSessionController
-    extends StateNotifier<ChatSession?> {
+class ActiveChatSessionController extends StateNotifier<ChatSession?> {
   final ChatSessionRepository repo;
 
   ActiveChatSessionController(this.repo) : super(null);
@@ -13,9 +12,10 @@ class ActiveChatSessionController
     state = session;
   }
 
-  Future<void> createNew() async {
+  Future<ChatSession> createNew() async {
     final session = await repo.createNewSession();
     state = session;
+    return session;
   }
 
   Future<void> updateSession(ChatSession session) async {

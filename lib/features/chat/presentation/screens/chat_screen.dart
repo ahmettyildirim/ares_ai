@@ -2,7 +2,9 @@ import 'package:ares_ai/app/core/theme/spacing.dart';
 import 'package:ares_ai/app/widgets/inputs/primary_input.dart';
 import 'package:ares_ai/features/chat/presentation/widgets/chat_bubble.dart';
 import 'package:ares_ai/features/chat/presentation/widgets/chat_bubble_streaming.dart';
+import 'package:ares_ai/features/chat/presentation/widgets/chat_sidebar.dart';
 import 'package:ares_ai/features/chat/presentation/widgets/typing/typing_indicator.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,7 +13,8 @@ import 'package:go_router/go_router.dart';
 
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  final String? sessionId;
+  const ChatScreen({super.key, this.sessionId});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -41,12 +44,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.pop();
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            );
           },
-        ),title: const Text("Ares AI")),
+        ),
+      title: Text("chat_title".tr())),
+      drawer: const ChatSidebar(),
       body: Column(
         children: [
           Expanded(
@@ -75,7 +82,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               children: [
                 Expanded(
                   child: PrimaryInput(
-                    label: "Message",
+                    label:  "chat_input_placeholder".tr(),
                     controller: _controller,
                   ),
                 ),
