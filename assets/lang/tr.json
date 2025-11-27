@@ -22,6 +22,8 @@
     "chat_copy": "Kopyala",
     "chat_save_to_memory": "Hafızaya kaydet",
     "chat_remove_from_memory": "Hafızadan sil",
-    "chat_ares_typing": "Ares yazıyor"
-
+    "chat_ares_typing": "Ares yazıyor",
+    "memory_title": "Ares Hafızası",
+    "memory_empty": "Ares henüz bir şey öğrenmedi.",
+    "memory_deleted": "Hafıza kaydı silindi"
 }

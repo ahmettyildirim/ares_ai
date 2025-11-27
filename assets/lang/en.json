@@ -22,6 +22,8 @@
     "chat_copy": "Copy",
     "chat_save_to_memory": "Save to memory",
     "chat_remove_from_memory": "Remove from memory",
-    "chat_ares_typing": "Ares is typing"
-
+    "chat_ares_typing": "Ares is typing",
+    "memory_title": "Ares Memory",
+    "memory_empty": "Ares has not saved anything yet.",
+    "memory_deleted": "Memory deleted"
 }

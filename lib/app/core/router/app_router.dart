@@ -1,4 +1,5 @@
 import 'package:ares_ai/features/chat/presentation/screens/chat_screen.dart';
+import 'package:ares_ai/features/memory/presentation/screens/memory_viewer_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +39,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/chat',
         name: 'chat',
         builder: (context, state) => const ChatScreen(),
+      ),
+      GoRoute(
+        path: '/memory',
+        name: 'memory',
+        builder: (_, __) => const MemoryViewerScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

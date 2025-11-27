@@ -60,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
                 label: "ask_ares".tr(),
                 icon: Icons.auto_awesome,
                 onPressed: () {
-                 context.push('/chat');
+                  context.push('/chat');
                 },
               ),
 
@@ -80,6 +80,13 @@ class HomeScreen extends ConsumerWidget {
                 label: "my_notes".tr(),
                 icon: Icons.note_alt_rounded,
                 onPressed: () {},
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+              PrimaryButton(
+                label: "memory_title".tr(),
+                icon: Icons.memory,
+                onPressed: () => context.push('/memory'),
               ),
 
               const SizedBox(height: AppSpacing.xl * 2),
