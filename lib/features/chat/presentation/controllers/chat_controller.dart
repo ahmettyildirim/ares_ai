@@ -32,6 +32,20 @@ class ChatController extends StateNotifier<ChatState> {
     state = state.copyWith(messages: updated);
   }
 
+  void syncMessagesWithMemory(List<MemoryItem> currentMemory) {
+    // Hafızadaki content'leri set olarak al
+    final memoryContents = currentMemory.map((m) => m.content).toSet();
+
+    // Mevcut mesaj listesi üzerinde gez
+    final updatedMessages = state.messages.map((msg) {
+      final shouldBeSaved = memoryContents.contains(msg.text);
+      return msg.copyWith(isSavedToMemory: shouldBeSaved);
+    }).toList();
+
+    // Sadece messages alanını güncelle
+    state = state.copyWith(messages: updatedMessages);
+  }
+
   Future<void> sendUserMessage(String text) async {
     // 1) Kullanıcı mesajını ekle
     final userMsg = ChatMessage(

@@ -1,4 +1,5 @@
 import 'package:ares_ai/app/core/theme/spacing.dart';
+import 'package:ares_ai/features/chat/presentation/controllers/chat_controller.dart';
 import 'package:ares_ai/features/memory/data/repositories/memory_providers.dart';
 import 'package:ares_ai/features/memory/domain/entities/memory_item.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -33,8 +34,7 @@ class MemoryViewerScreen extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.lg),
             itemCount: memories.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(height: AppSpacing.md),
+            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
             itemBuilder: (_, i) {
               final mem = memories[i];
               return _MemoryCard(memory: mem);
@@ -68,9 +68,7 @@ class _MemoryCard extends ConsumerWidget {
             memory.content,
             style: const TextStyle(fontSize: 16),
           ),
-
           const SizedBox(height: AppSpacing.sm),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -78,6 +76,11 @@ class _MemoryCard extends ConsumerWidget {
                 icon: const Icon(Icons.delete),
                 onPressed: () async {
                   await memoryRepo.removeMemoryByContent(memory.content);
+                  ref
+                      .read(chatControllerProvider.notifier)
+                      .syncMessagesWithMemory(
+                        await memoryRepo.getAllMemories(),
+                      );
 
                   // Listeyi güncellemek için provider'ı invalidate et
                   ref.invalidate(memoryRepositoryProvider);
