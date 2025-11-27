@@ -62,4 +62,45 @@ class OpenAiService implements AiService {
       return "ai_error_occurred".tr(args: ["$e"]);
     }
   }
+
+  @override
+  Stream<String> sendMessageStream(String message,
+      {Map<String, dynamic>? context}) async* {
+    final uri = Uri.parse('${Env.openAiBaseUrl}/chat/completions');
+
+    final request = http.Request("POST", uri);
+    request.headers.addAll({
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${Env.openAiApiKey}",
+    });
+
+    request.body = jsonEncode({
+      "model": Env.openAiModel,
+      "stream": true,
+      "messages": [
+        {"role": "user", "content": message}
+      ]
+    });
+
+    final response = await _client.send(request);
+
+    // Chunk reading
+    await for (var chunk in response.stream.transform(utf8.decoder)) {
+      if (chunk.trim().isEmpty) continue;
+
+      final lines = chunk.split("\n");
+      for (var line in lines) {
+        if (!line.startsWith("data:")) continue;
+        if (line.contains("[DONE]")) break;
+
+        final jsonStr = line.replaceFirst("data: ", "");
+        final data = jsonDecode(jsonStr);
+
+        final delta = data?["choices"]?[0]?["delta"]?["content"];
+        if (delta is String) {
+          yield delta;
+        }
+      }
+    }
+  }
 }

@@ -66,6 +66,8 @@ class InMemoryStorageService implements StorageService {
 /// AI servisleri (LLM entegrasyonu) için arayüz.
 abstract class AiService {
   Future<String> sendMessage(String message, {Map<String, dynamic>? context});
+   Stream<String> sendMessageStream(String message,
+      {Map<String, dynamic>? context});
 }
 
 /// Dummy implementation.
@@ -77,6 +79,15 @@ class FakeAiService implements AiService {
     await Future.delayed(const Duration(milliseconds: 300));
     return 'Bu sadece dummy AI cevabı. Gerçek LLM entegrasyonu sonraki sprintte gelecek. Mesajın: "$message"';
   }
+  @override
+    Stream<String> sendMessageStream(String message,
+        {Map<String, dynamic>? context}) async* {
+      const fakeResponse = "Bu sadece dummy streaming cevabı.";
+      for (final char in fakeResponse.split('')) {
+        await Future.delayed(Duration(milliseconds: 50));
+        yield char;
+      }
+    }
 }
 
 /// Buradan gerçek / fake AI seçimini tek yerden kontrol edeceğiz.

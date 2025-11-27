@@ -27,4 +27,15 @@ class ChatRepository {
       createdAt: DateTime.now(),
     );
   }
+  Stream<String> sendMessageStream(
+    List<ChatMessage> history, String userText) async* {
+  final prompt = PromptBuilder.build(history, userText);
+
+  final stream = await ai.sendMessageStream(prompt);
+
+  await for (final token in stream) {
+    yield token;
+  }
+}
+
 }
