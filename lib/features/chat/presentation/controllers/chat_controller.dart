@@ -1,47 +1,30 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../domain/entities/chat_message.dart';
 import '../../data/repositories/chat_repository.dart';
+import 'chat_state.dart';
 
-class ChatState {
-  final List<ChatMessage> messages;
-  final bool isAiTyping;
-  final String streamingText;
-
-  ChatState({
-    required this.messages,
-    this.isAiTyping = false,
-    this.streamingText = "",
-  });
-
-  ChatState copyWith({
-    List<ChatMessage>? messages,
-    bool? isAiTyping,
-    String? streamingText,
-  }) {
-    return ChatState(
-      messages: messages ?? this.messages,
-      isAiTyping: isAiTyping ?? this.isAiTyping,
-      streamingText: streamingText ?? this.streamingText,
-    );
-  }
-}
-
-final chatControllerProvider =
-    StateNotifierProvider<ChatController, ChatState>((ref) {
-  final repo = ref.read(chatRepositoryProvider);
-  return ChatController(repo);
-});
+import '../../../memory/domain/entities/memory_item.dart';
+import '../../../memory/domain/usecases/memory_extraction_service.dart';
+import '../../../memory/domain/usecases/memory_repository.dart';
+import '../../../memory/data/repositories/memory_providers.dart';
 
 class ChatController extends StateNotifier<ChatState> {
   final ChatRepository repo;
+  final MemoryExtractionService memoryExtractor;
+  final MemoryRepository memoryRepo;
 
-  ChatController(this.repo)
-      : super(ChatState(messages: []));
+  ChatController({
+    required this.repo,
+    required this.memoryExtractor,
+    required this.memoryRepo,
+  }) : super(ChatState(messages: []));
 
   Future<void> sendUserMessage(String text) async {
-    // Add user message
+    // 1) Kullanıcı mesajını ekle
     final userMsg = ChatMessage(
-      id: "${DateTime.now().microsecondsSinceEpoch}",
+      id: const Uuid().v4(),
       text: text,
       isUser: true,
       createdAt: DateTime.now(),
@@ -51,27 +34,67 @@ class ChatController extends StateNotifier<ChatState> {
       messages: [...state.messages, userMsg],
     );
 
-    // Show typing indicator
-    state = state.copyWith(isAiTyping: true, streamingText: "");
+    // 2) Ares typing başlasın
+    state = state.copyWith(
+      isAiTyping: true,
+      streamingText: "",
+    );
 
-    // Get AI answer as a stream
-    await for (final chunk in repo.sendMessageStream(state.messages, text)) {
-      // chunk = partial text from LLM
-      state = state.copyWith(streamingText: state.streamingText + chunk);
+    // 3) 🧠 Memory Extraction
+    final extraction = await memoryExtractor.extract(text);
+
+    if (extraction.shouldWrite && extraction.memory != null) {
+      final newMemory = MemoryItem(
+        id: const Uuid().v4(),
+        content: extraction.memory!,
+        createdAt: DateTime.now(),
+        importance: 0.7,
+      );
+      await memoryRepo.addMemory(newMemory);
     }
 
-    // Streaming finished → convert to chat message
-    final aiMsg = ChatMessage(
-      id: "${DateTime.now().microsecondsSinceEpoch}",
-      text: state.streamingText,
+    // 4) Streaming AI yanıtı
+    String fullResponse = "";
+
+    final stream = repo.sendMessageStream(
+      state.messages,
+      text,
+    );
+
+    await for (final token in stream) {
+      fullResponse += token;
+
+      // Streaming aşaması
+      state = state.copyWith(
+        streamingText: fullResponse,
+      );
+    }
+
+    // 5) Streaming bitti → final mesaj
+    final finalMsg = ChatMessage(
+      id: const Uuid().v4(),
+      text: fullResponse,
       isUser: false,
       createdAt: DateTime.now(),
     );
 
     state = state.copyWith(
-      messages: [...state.messages, aiMsg],
+      messages: [...state.messages, finalMsg],
       streamingText: "",
       isAiTyping: false,
     );
   }
 }
+
+final chatControllerProvider =
+    StateNotifierProvider<ChatController, ChatState>((ref) {
+  final repo = ref.read(chatRepositoryProvider);
+  final extractor = ref.read(memoryExtractionServiceProvider);
+  final memory = ref.read(memoryRepositoryProvider);
+
+  return ChatController(
+    repo: repo,
+    memoryExtractor: extractor,
+    memoryRepo: memory,
+  );
+});

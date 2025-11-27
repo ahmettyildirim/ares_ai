@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../controllers/chat_controller.dart';
+import 'package:go_router/go_router.dart';
+
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -38,7 +40,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ref.listen(chatControllerProvider, (_, __) => _scrollToBottom());
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Ares AI")),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.pop();
+          },
+        ),title: const Text("Ares AI")),
       body: Column(
         children: [
           Expanded(
