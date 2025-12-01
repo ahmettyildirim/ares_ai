@@ -1,3 +1,4 @@
+import 'package:ares_ai/features/chat/presentation/controllers/chat_sessions_controller.dart';
 import 'package:ares_ai/features/chat/presentation/controllers/chat_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -18,12 +19,14 @@ class ChatController extends StateNotifier<ChatState> {
   final MemoryRepository memoryRepo;
   final MemoryExtractionService memoryExtractor;
   final ActiveChatSessionController activeSession;
+  final Ref ref;
 
   ChatController({
     required this.repo,
     required this.memoryRepo,
     required this.memoryExtractor,
     required this.activeSession,
+    required this.ref,
   }) : super(ChatState(messages: []));
 
   /// Bir mesajın memory’de işaretli olup olmadığını UI’de güncelle
@@ -84,6 +87,7 @@ class ChatController extends StateNotifier<ChatState> {
       updatedAt: DateTime.now(),
     );
     await activeSession.updateSession(updated);
+    ref.read(chatSessionsProvider.notifier).refresh();
   }
 
   Future<void> sendUserMessage(String text) async {
@@ -169,6 +173,7 @@ class ChatController extends StateNotifier<ChatState> {
   );
 
   await activeSession.updateSession(updated);
+  ref.read(chatSessionsProvider.notifier).refresh();
 }
 
 }
@@ -185,5 +190,6 @@ final chatControllerProvider =
     memoryRepo: memory,
     memoryExtractor: extractor,
     activeSession: activeSession,
+    ref: ref, 
   );
 });

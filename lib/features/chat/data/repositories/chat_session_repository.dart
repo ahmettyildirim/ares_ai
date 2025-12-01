@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import '../../domain/entities/chat_session.dart';
 
 abstract class ChatSessionRepository {
@@ -8,6 +9,7 @@ abstract class ChatSessionRepository {
   Future<ChatSession> createNewSession();
   Future<void> deleteSession(String sessionId);
   Future<void> clearAllSessions();
+  Future<void> updateTitle(String sessionId, String newTitle);
 }
 
 class InMemoryChatSessionRepository implements ChatSessionRepository {
@@ -15,16 +17,18 @@ class InMemoryChatSessionRepository implements ChatSessionRepository {
 
   @override
   Future<List<ChatSession>> getSessions() async {
+    // En yeni en üstte
+    _sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return _sessions;
   }
 
   @override
   Future<ChatSession?> getSession(String sessionId) async {
-    final index = _sessions.indexWhere((s) => s.id == sessionId);
-    if (index == -1) {
+    try {
+      return _sessions.firstWhere((s) => s.id == sessionId);
+    } catch (e) {
       return null;
     }
-    return _sessions[index];
   }
 
   @override
@@ -36,12 +40,30 @@ class InMemoryChatSessionRepository implements ChatSessionRepository {
     } else {
       _sessions[index] = session;
     }
+
+    // Sort after save
+    _sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }
 
   @override
   Future<ChatSession> createNewSession() async {
-    final session = ChatSession.createEmpty();
+    final now = DateTime.now();
+    final session = ChatSession(
+      id: const Uuid().v4(),
+      title: "New Chat",
+      messages: [],
+      createdAt: now,
+      updatedAt: now,
+    );
+
     _sessions.add(session);
+
+    // Limit: keep only latest 10
+    _sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    if (_sessions.length > 10) {
+      _sessions.removeLast();
+    }
+
     return session;
   }
 
@@ -53,6 +75,21 @@ class InMemoryChatSessionRepository implements ChatSessionRepository {
   @override
   Future<void> clearAllSessions() async {
     _sessions.clear();
+  }
+
+  @override
+  Future<void> updateTitle(String sessionId, String newTitle) async {
+    final index = _sessions.indexWhere((s) => s.id == sessionId);
+    if (index == -1) return;
+
+    final updated = _sessions[index].copyWith(
+      title: newTitle,
+      updatedAt: DateTime.now(),
+    );
+
+    _sessions[index] = updated;
+
+    _sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }
 }
 

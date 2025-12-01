@@ -29,6 +29,10 @@ class ActiveChatSessionController extends StateNotifier<ChatSession?> {
       state = null;
     }
   }
+
+  void clearSession() {
+    state = null;
+  }
 }
 
 final activeChatSessionProvider =

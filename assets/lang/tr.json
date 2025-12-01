@@ -31,5 +31,11 @@
     "sidebar_settings": "Ayarlar",
     "chat_title": "Ares AI",
     "chat_input_placeholder": "Mesaj",
-    "chat_send": "Gönder"
+    "chat_send": "Gönder",
+    "rename_chat": "Sohbeti Yeniden Adlandır",
+    "delete_chat": "Sohbeti Sil",
+    "delete_chat_confirm": "Bu sohbeti silmek istediğine emin misin?",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil"
 }

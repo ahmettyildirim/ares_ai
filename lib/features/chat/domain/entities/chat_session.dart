@@ -3,10 +3,10 @@ import 'package:uuid/uuid.dart';
 
 class ChatSession {
   final String id;
-  final String title;
-  final List<ChatMessage> messages;
+  String title;
+  List<ChatMessage> messages;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  DateTime updatedAt;
 
   ChatSession({
     required this.id,

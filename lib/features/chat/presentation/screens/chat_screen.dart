@@ -7,6 +7,7 @@ import 'package:ares_ai/features/chat/presentation/widgets/chat_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 
 import '../controllers/chat_controller.dart';
 
@@ -60,13 +61,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
+        leadingWidth: 100,
+        leading: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                context.go('/home');
+              },
+            ),
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                );
+              },
+            ),
+          ],
         ),
         title: Text("chat_title".tr()),
       ),
@@ -79,20 +91,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               padding: const EdgeInsets.all(AppSpacing.md),
               children: [
                 // Normal mesajlar
-                for (final msg in chatState.messages)
-                  ChatBubble(message: msg),
+                for (final msg in chatState.messages) ChatBubble(message: msg),
 
                 // Streaming bubble
                 if (chatState.streamingText.isNotEmpty)
                   ChatBubbleStreaming(text: chatState.streamingText),
 
                 // Typing indicator
-                if (chatState.isAiTyping)
-                  const TypingIndicator(),
+                if (chatState.isAiTyping) const TypingIndicator(),
               ],
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
