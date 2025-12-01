@@ -1,26 +1,32 @@
+import 'package:ares_ai/features/chat/presentation/controllers/chat_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/chat_message.dart';
 import '../../data/repositories/chat_repository.dart';
-import 'chat_state.dart';
 
+import '../../../memory/data/repositories/memory_providers.dart';
 import '../../../memory/domain/entities/memory_item.dart';
 import '../../../memory/domain/usecases/memory_extraction_service.dart';
 import '../../../memory/domain/usecases/memory_repository.dart';
-import '../../../memory/data/repositories/memory_providers.dart';
+
+import '../../domain/entities/chat_session.dart';
+import '../controllers/active_chat_session_controller.dart';
 
 class ChatController extends StateNotifier<ChatState> {
   final ChatRepository repo;
-  final MemoryExtractionService memoryExtractor;
   final MemoryRepository memoryRepo;
+  final MemoryExtractionService memoryExtractor;
+  final ActiveChatSessionController activeSession;
 
   ChatController({
     required this.repo,
-    required this.memoryExtractor,
     required this.memoryRepo,
+    required this.memoryExtractor,
+    required this.activeSession,
   }) : super(ChatState(messages: []));
 
+  /// Bir mesajın memory’de işaretli olup olmadığını UI’de güncelle
   void toggleMessageMemory(String messageId, bool saved) {
     final updated = state.messages.map((m) {
       if (m.id == messageId) {
@@ -30,24 +36,59 @@ class ChatController extends StateNotifier<ChatState> {
     }).toList();
 
     state = state.copyWith(messages: updated);
+    _persistToSession();
   }
 
+  /// Memory’deki content’lere göre mesajların isSavedToMemory flag’lerini senkronize et
   void syncMessagesWithMemory(List<MemoryItem> currentMemory) {
-    // Hafızadaki content'leri set olarak al
     final memoryContents = currentMemory.map((m) => m.content).toSet();
 
-    // Mevcut mesaj listesi üzerinde gez
     final updatedMessages = state.messages.map((msg) {
       final shouldBeSaved = memoryContents.contains(msg.text);
       return msg.copyWith(isSavedToMemory: shouldBeSaved);
     }).toList();
 
-    // Sadece messages alanını güncelle
     state = state.copyWith(messages: updatedMessages);
+    _persistToSession();
+  }
+
+  ChatSession? get _session => activeSession.state;
+
+  /// Eğer aktif session yoksa yeni bir tane oluştur.
+  Future<void> ensureSession() async {
+    if (_session == null) {
+      await activeSession.createNew();
+      // Yeni session oluşturunca state.messages’ı da sıfırla
+      state = ChatState(messages: []);
+    }
+  }
+
+  /// Belirli bir session’ı yükleyip state’e yansıt.
+  Future<void> loadSession(String sessionId) async {
+    await activeSession.loadSession(sessionId);
+    final s = _session;
+    if (s != null) {
+      state = ChatState(messages: s.messages);
+      // Hafızayla senkronizasyon istersen buraya memory sync de ekleyebilirsin.
+      final allMemory = await memoryRepo.getAllMemories();
+      syncMessagesWithMemory(allMemory);
+    }
+  }
+
+  /// Mevcut state.messages’ı aktif ChatSession’a persist et.
+  Future<void> _persistToSession() async {
+    final s = _session;
+    if (s == null) return;
+    final updated = s.copyWith(
+      messages: state.messages,
+      updatedAt: DateTime.now(),
+    );
+    await activeSession.updateSession(updated);
   }
 
   Future<void> sendUserMessage(String text) async {
-    // 1) Kullanıcı mesajını ekle
+    await ensureSession();
+
     final userMsg = ChatMessage(
       id: const Uuid().v4(),
       text: text,
@@ -55,19 +96,16 @@ class ChatController extends StateNotifier<ChatState> {
       createdAt: DateTime.now(),
     );
 
+    // Kullanıcı mesajını ekle + typing başlasın
     state = state.copyWith(
       messages: [...state.messages, userMsg],
-    );
-
-    // 2) Ares typing başlasın
-    state = state.copyWith(
       isAiTyping: true,
       streamingText: "",
     );
+    await _persistToSession();
 
-    // 3) 🧠 Memory Extraction
+    // 🧠 Memory extraction
     final extraction = await memoryExtractor.extract(text);
-
     if (extraction.shouldWrite && extraction.memory != null) {
       final newMemory = MemoryItem(
         id: const Uuid().v4(),
@@ -77,18 +115,12 @@ class ChatController extends StateNotifier<ChatState> {
       );
       await memoryRepo.addMemory(newMemory);
 
-      // 🔖 Bu mesajdan memory üretildi → ilgili ChatMessage'ı işaretle
-      final updatedMessages = state.messages.map((m) {
-        if (m.id == userMsg.id) {
-          return m.copyWith(isSavedToMemory: true);
-        }
-        return m;
-      }).toList();
-
-      state = state.copyWith(messages: updatedMessages);
+      // Hafıza değiştiyse, mesajların isSavedToMemory flag’lerini güncelle
+      final allMemory = await memoryRepo.getAllMemories();
+      syncMessagesWithMemory(allMemory);
     }
 
-    // 4) Streaming AI yanıtı
+    // 🤖 Streaming AI cevabı
     String fullResponse = "";
 
     final stream = repo.sendMessageStream(
@@ -99,37 +131,59 @@ class ChatController extends StateNotifier<ChatState> {
     await for (final token in stream) {
       fullResponse += token;
 
-      // Streaming aşaması
+      // streamingText güncelle
       state = state.copyWith(
         streamingText: fullResponse,
       );
     }
 
-    // 5) Streaming bitti → final mesaj
-    final finalMsg = ChatMessage(
+    // Streaming bitti → final AI mesajı
+    final aiMsg = ChatMessage(
       id: const Uuid().v4(),
-      text: fullResponse,
+      text: state.streamingText,
       isUser: false,
       createdAt: DateTime.now(),
     );
 
     state = state.copyWith(
-      messages: [...state.messages, finalMsg],
+      messages: [...state.messages, aiMsg],
       streamingText: "",
       isAiTyping: false,
     );
+
+    await _persistToSession();
+
+    if (state.messages.length == 2) {
+      _generateTitleForSession(text);
+    }
   }
+  Future<void> _generateTitleForSession(String firstMessage) async {
+  final title = await repo.generateSessionTitle(firstMessage);
+
+  final s = _session;
+  if (s == null) return;
+
+  final updated = s.copyWith(
+    title: title,
+    updatedAt: DateTime.now(),
+  );
+
+  await activeSession.updateSession(updated);
+}
+
 }
 
 final chatControllerProvider =
     StateNotifierProvider<ChatController, ChatState>((ref) {
   final repo = ref.read(chatRepositoryProvider);
-  final extractor = ref.read(memoryExtractionServiceProvider);
   final memory = ref.read(memoryRepositoryProvider);
+  final extractor = ref.read(memoryExtractionServiceProvider);
+  final activeSession = ref.read(activeChatSessionProvider.notifier);
 
   return ChatController(
     repo: repo,
-    memoryExtractor: extractor,
     memoryRepo: memory,
+    memoryExtractor: extractor,
+    activeSession: activeSession,
   );
 });

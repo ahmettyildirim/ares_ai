@@ -22,6 +22,7 @@ class ChatSidebar extends ConsumerWidget {
           future: repo.getSessions(),
           builder: (context, snapshot) {
             final sessions = snapshot.data ?? [];
+            sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

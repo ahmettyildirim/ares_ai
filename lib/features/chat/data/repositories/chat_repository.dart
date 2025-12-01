@@ -62,6 +62,18 @@ Be helpful, context-aware, and consistent.
       yield token;
     }
   }
+
+  Future<String> generateSessionTitle(String text) async {
+    final prompt = """
+I want you to generate a short title for this conversation.
+Return ONLY the title, no explanation.
+
+User message: "$text"
+""";
+
+    final resp = await aiService.sendMessage(prompt);
+    return resp.trim().replaceAll('"', '');
+  }
 }
 
 // Riverpod provider

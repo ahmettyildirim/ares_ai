@@ -2,19 +2,21 @@ import 'package:ares_ai/app/core/theme/spacing.dart';
 import 'package:ares_ai/app/widgets/inputs/primary_input.dart';
 import 'package:ares_ai/features/chat/presentation/widgets/chat_bubble.dart';
 import 'package:ares_ai/features/chat/presentation/widgets/chat_bubble_streaming.dart';
-import 'package:ares_ai/features/chat/presentation/widgets/chat_sidebar.dart';
 import 'package:ares_ai/features/chat/presentation/widgets/typing/typing_indicator.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:ares_ai/features/chat/presentation/widgets/chat_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../controllers/chat_controller.dart';
-import 'package:go_router/go_router.dart';
-
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String? sessionId;
-  const ChatScreen({super.key, this.sessionId});
+
+  const ChatScreen({
+    super.key,
+    this.sessionId,
+  });
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -36,10 +38,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // İlk açılışta session yükleme / oluşturma
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final chat = ref.read(chatControllerProvider.notifier);
+      if (widget.sessionId != null) {
+        chat.loadSession(widget.sessionId!);
+      } else {
+        chat.ensureSession();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatControllerProvider);
 
-    // Auto-scroll her state update’inde tetiklenir
+    // State değiştikçe auto-scroll
     ref.listen(chatControllerProvider, (_, __) => _scrollToBottom());
 
     return Scaffold(
@@ -52,7 +68,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             );
           },
         ),
-      title: Text("chat_title".tr())),
+        title: Text("chat_title".tr()),
+      ),
       drawer: const ChatSidebar(),
       body: Column(
         children: [
@@ -65,11 +82,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 for (final msg in chatState.messages)
                   ChatBubble(message: msg),
 
-                // Eğer AI şu anda yazıyorsa streaming text bubble
+                // Streaming bubble
                 if (chatState.streamingText.isNotEmpty)
                   ChatBubbleStreaming(text: chatState.streamingText),
 
-                // Eğer AI typing indicator açıldıysa
+                // Typing indicator
                 if (chatState.isAiTyping)
                   const TypingIndicator(),
               ],
@@ -82,7 +99,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               children: [
                 Expanded(
                   child: PrimaryInput(
-                    label:  "chat_input_placeholder".tr(),
+                    label: "chat_input_placeholder".tr(),
                     controller: _controller,
                   ),
                 ),
